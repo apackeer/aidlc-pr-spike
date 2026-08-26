@@ -1,0 +1,33 @@
+name: bot-review
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+      event:
+        description: APPROVE | REQUEST_CHANGES | COMMENT
+        required: true
+      body:
+        description: review body
+        required: false
+        default: bot review
+permissions:
+  pull-requests: write
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: post review as github-actions bot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ inputs.pr }}
+          EVENT: ${{ inputs.event }}
+          BODY: ${{ inputs.body }}
+        run: |
+          case "$EVENT" in
+            APPROVE) FLAG="--approve";;
+            REQUEST_CHANGES) FLAG="--request-changes";;
+            *) FLAG="--comment";;
+          esac
+          gh pr review "$PR" --repo "$GITHUB_REPOSITORY" $FLAG --body "$BODY"
